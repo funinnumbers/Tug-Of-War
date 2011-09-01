@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Tug OFf War Build.xml Template">
 
+    <!--####################-->
+    <!--#### Properties ####-->
+    <!--####################-->
 
     <property file="${user.home}/.sunspot.properties"/>
     <property name="suite.dir" value="suite"/>
@@ -14,16 +17,29 @@
     <property name="lib.dir" value="${basedir}/lib"/>
 
 
-    <property name="engineclasspath" value="eu.funinnumbers.games.sg.tow.engine.TOWEngineApp"/>
     <property name="jar.file.engine" value="${suite.dir}/game-engine.jar"/>
+    <property name="engineclasspath" value="eu.funinnumbers.games.sg.tow.engine.TOWEngineApp"/>
 
-    <!-- engine stuff -->
+    <property name="jar.file.station" value="${suite.dir}/game-station.jar"/>
+    <property name="stationclasspath" value="eu.funinnumbers.games.sg.tow.station.TOWStationApp"/>
 
+
+    <!--#############################-->
+    <!--#### High Level Commands ####-->
+    <!--#############################-->
     <target name="engine" description="Execute Game Engine">
         <antcall target="jar-engine"/>
         <antcall target="run-engine"/>
     </target>
 
+    <target name="station" description="Start Game Station on SUN SPOT">
+        <antcall target="host-run"/>
+    </target>
+
+
+    <!--######################-->
+    <!--#### Engine Stuff ####-->
+    <!--######################-->
     <path id="libraries">
         <fileset dir="${lib.dir}">
             <include name="**/*.jar"/>
@@ -78,11 +94,87 @@
     </target>
 
 
-       <target name="clean">
+    <target name="clean">
         <delete dir="${build.dir}"/>
         <delete dir="${build.dir.j2me}"/>
         <delete dir="${src.dir.temp}"/>
         <delete dir="${suite.dir}"/>
     </target>
+
+
+    <!--#######################-->
+    <!--#### Station Stuff ####-->
+    <!--#######################-->
+
+    <target name="copy-sources-station">
+        <mkdir dir="${src.dir.temp}"/>
+        <copy todir="${src.dir.temp}/eu/funinnumbers/games/sg/tow/station">
+            <fileset dir="${src.dir}/eu/funinnumbers/games/sg/tow/station"/>
+        </copy>
+        <copy todir="${src.dir.temp}/eu/funinnumbers/games/sg/tow/guardian/actions">
+            <fileset dir="${src.dir}/eu/funinnumbers/games/sg/tow/guardian/actions"/>
+        </copy>
+    </target>
+
+    <target name="-do-host-compile" depends="clean, copy-sources-station">
+        <mkdir dir="${build.dir}/classes"/>
+
+        <!-- ${host.java.version} -->
+        <javac srcdir="${src.dir.temp}"
+               destdir="${build.dir}/classes"
+               includeAntRuntime="no"
+               includeJavaRuntime="no"
+               classpath="${hostagent.compile.classpath}:lib/ant.jar:lib/ant-launcher.jar"
+               target="1.6"
+               source="1.6"
+               debug="true" fork="yes"
+               classpathref="libraries">
+        </javac>
+        <!--        <rmic base="${build.dir}/classes" includes="station/**"/>-->
+    </target>
+
+    <target name="jar-station" depends="host-compile" description="create station jar">
+        <mkdir dir="${suite.dir}"/>
+        <jar destfile="${jar.file.station}" basedir="${build.dir}/classes">
+            <manifest>
+                <attribute name="Built-By" value="CTI, UPatras -- FinN Team"/>
+                <attribute name="Main-Class" value="${stationclasspath}"/>
+            </manifest>
+        </jar>
+        <copy file="${jar.file.station}" todir="${target.dir}"/>
+    </target>
+
+    <target name="-do-host-run" depends="jar-station">
+        <fail unless="port">Must set port on command line (-Dport=xxxx)</fail>
+        <fail unless="engine">Engine IP not defined (set with -Dengine=[IP])</fail>
+        <fail unless="station">Station IP not defined (set with -Dstation=[IP])</fail>
+        <echo message="${build.dir}"/>
+        <java classname="${stationclasspath}"
+              classpath="${jar.file.station}:${hostagent.run.classpath}:lib/ant.jar:lib/ant-launcher.jar" fork="true"
+              failonerror="true"
+              classpathref="libraries">
+            <sysproperty key="spot.basestation.sharing" value="${multi.process.basestation.sharing}"/>
+            <sysproperty key="spotclient.addin.classes" value="${spotclient.all.addin.classes}"/>
+            <jvmarg value="-Djava.library.path=${sunspot.lib}${path.separator}${user.library.path}"/>
+            <jvmarg value="-DSERIAL_PORT=${port}"/>
+            <jvmarg value="-Dremote.channel=${remote.channel}"/>
+            <jvmarg value="-Dremote.pan.id=${remote.pan.id}"/>
+            <jvmarg value="-Dspot.mesh.route.logging=${spot.mesh.route.logging}"/>
+            <jvmarg value="-Dspot.log.connections=${spot.log.connections}"/>
+            <jvmarg value="-Dengine.IP=${engine}"/>
+            <jvmarg value="-Djava.rmi.server.hostname=${station}"/>
+            <jvmarg line="${host.jvmargs}"/>
+            <arg line="${main.args}"/>
+        </java>
+    </target>
+
+
+    <!-- include SUN SPOT build.xml files -->
+    <import file="${sunspot.home}/build.xml"/>
+
+
+    <!--########################-->
+    <!--#### Guardian Stuff ####-->
+    <!--########################-->
 
 </project>

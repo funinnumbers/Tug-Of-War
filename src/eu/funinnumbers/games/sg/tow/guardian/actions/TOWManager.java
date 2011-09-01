@@ -1,4 +1,4 @@
-package eu.funinnumbers.games.sg.tow.guardian;
+package eu.funinnumbers.games.sg.tow.guardian.actions;
 
 import com.sun.spot.sensorboard.peripheral.LEDColor;
 import eu.funinnumbers.guardian.util.HashMap;

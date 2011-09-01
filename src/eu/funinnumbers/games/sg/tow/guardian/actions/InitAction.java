@@ -1,7 +1,6 @@
 package eu.funinnumbers.games.sg.tow.guardian.actions;
 
 
-import eu.funinnumbers.games.sg.tow.guardian.TOWManager;
 import eu.funinnumbers.guardian.GuardianInfo;
 import eu.funinnumbers.guardian.ui.misc.LEDManager;
 import eu.funinnumbers.guardian.communication.actionprotocol.AbstractGuardianAction;

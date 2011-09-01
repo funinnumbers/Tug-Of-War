@@ -3,6 +3,7 @@ package eu.funinnumbers.games.sg.tow.guardian;
 import com.sun.spot.sensorboard.EDemoBoard;
 import com.sun.spot.sensorboard.peripheral.ISwitch;
 import eu.funinnumbers.games.sg.tow.guardian.actions.InitAction;
+import eu.funinnumbers.games.sg.tow.guardian.actions.TOWManager;
 import eu.funinnumbers.games.sg.tow.guardian.ui.TOWGestureReporter;
 import eu.funinnumbers.guardian.AbstractGuardianApp;
 import eu.funinnumbers.guardian.GuardianInfo;
