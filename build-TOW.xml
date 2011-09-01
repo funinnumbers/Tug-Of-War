@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Tug OFf War Build.xml Template">
+
+
+    <property file="${user.home}/.sunspot.properties"/>
+    <property name="suite.dir" value="suite"/>
+    <property name="build.dir" value="${basedir}/build"/>
+    <property name="build.dir.j2me" value="${basedir}/j2meclasses"/>
+    <property name="src.dir" value="${basedir}/src/"/>
+    <property name="src.dir.temp" value="${basedir}/tempsrc"/>
+
+
+    <property name="target.dir" value="${basedir}/target"/>
+    <property name="lib.dir" value="${basedir}/lib"/>
+
+
+    <property name="engineclasspath" value="eu.funinnumbers.games.sg.tow.engine.TOWEngineApp"/>
+    <property name="jar.file.engine" value="${suite.dir}/game-engine.jar"/>
+
+    <!-- engine stuff -->
+
+    <target name="engine" description="Execute Game Engine">
+        <antcall target="jar-engine"/>
+        <antcall target="run-engine"/>
+    </target>
+
+    <path id="libraries">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+
+    <target name="copy-sources-engine">
+        <mkdir dir="${src.dir.temp}"/>
+        <copy todir="${src.dir.temp}/eu/funinnumbers/games/sg/tow/engine">
+            <fileset dir="${src.dir}/eu/funinnumbers/games/sg/tow/engine"/>
+        </copy>
+    </target>
+
+    <target name="compile-engine" depends="copy-sources-engine">
+        <mkdir dir="${build.dir}/classes"/>
+        <copy todir="${build.dir}/classes/eu/funinnumbers/games/sg/tow/engine/ui/visualoutput/img/">
+            <fileset
+                    dir="${src.dir.temp}/eu/funinnumbers/games/sg/tow/engine/ui/visualoutput/img/"/>
+        </copy>
+        <javac sourcepath=""
+               srcdir="${src.dir.temp}"
+               destdir="build/classes"
+               includeAntRuntime="no"
+               includeJavaRuntime="no"
+               debug="true" fork="yes"
+               target="1.6"
+               source="1.6"
+               classpathref="libraries">
+            <include name="eu/funinnumbers/games/sg/tow/engine/**"/>
+        </javac>
+    </target>
+
+    <target name="jar-engine" depends="clean, compile-engine" description="create engine jar">
+        <mkdir dir="${suite.dir}"/>
+        <jar destfile="${jar.file.engine}" basedir="${build.dir}/classes">
+            <manifest>
+                <attribute name="Built-By" value="CTI, UPatras -- FinN Team"/>
+                <attribute name="Main-Class" value="${engineclasspath}"/>
+            </manifest>
+        </jar>
+        <copy file="${jar.file.engine}" todir="${target.dir}"/>
+    </target>
+
+    <target name="run-engine">
+        <fail unless="engine">Engine IP not defined (set with -Dengine=[IP])</fail>
+        <java classname="${engineclasspath}" classpath="${jar.file.engine}" classpathref="libraries" fork="true"
+              failonerror="true">
+            <jvmarg value="-Djava.rmi.server.hostname=${engine}"/>
+            <jvmarg value="-Dhyperengine.IP=${hyperengine}"/>
+        </java>
+    </target>
+
+
+       <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${build.dir.j2me}"/>
+        <delete dir="${src.dir.temp}"/>
+        <delete dir="${suite.dir}"/>
+    </target>
+
+</project>
